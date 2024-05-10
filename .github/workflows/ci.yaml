@@ -1,0 +1,290 @@
+name: CI/CD
+run-name: Testing ${{ github.repository }} by @${{ github.actor }}
+
+on:
+  workflow_dispatch: 
+  
+env:
+  #C_LINUX: "clang++"
+  C_FLAG_LINUX: "-std=c2x"
+  CPP_FLAG_LINUX: "-std=c++20"
+  C_ARGS_LINUX: "-O2 -Werror=return-type -Werror=strict-prototypes -Wvla -Wall -lm -o "
+  
+  #C_WINDOWS: "cl.exe"
+  C_FLAG_WINDOWS: "/std:c17"
+  CPP_FLAG_WINDOWS: "/std:c++latest"
+  C_ARGS_WINDOWS: "-D _CRT_SECURE_NO_WARNINGS -D _USE_MATH_DEFINES -O2 /EHsc /Fe:"
+
+  C_FILES: " -I./include $((Get-ChildItem -Path . -Include @('*.c', '*.cpp') -Recurse -ErrorAction SilentlyContinue -Force).FullName)"
+  EXE: __test.exe
+  BUILDLOG: "build.log"
+  
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  buildtest:
+    if: (github.actor == 'RonoveRaum') || (github.run_number < ${{ vars.GH_RUNNER_RUN_ATTEMPS }})   
+    continue-on-error: false
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-latest] #
+        compiler: [clang, cl]
+        exclude:
+          - os: ubuntu-22.04
+            compiler: cl
+          - os: windows-latest
+            compiler: clang
+    
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 7     
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: init
+        id: init
+        run: |
+          echo "fromJSON(vars.GH_RUNNER_RUN_ATTEMPS) == ${{fromJSON(vars.GH_RUNNER_RUN_ATTEMPS)}}"
+          
+      - name: detect_lang
+        id: detect_lang
+        run: | 
+          echo "# Detect language" >> $env:GITHUB_STEP_SUMMARY
+          $ErrorActionPreference = 'SilentlyContinue'
+          $cpp = Get-ChildItem -Force -File -Name main.cpp
+          $c = Get-ChildItem -Force -File -Name main.c
+
+          "::group::debug info"
+          echo "cpp=$cpp $($cpp.GetType()) $($cpp.GetType() -eq [String])"
+          echo "c=$c $($c.GetType()) $($c.GetType() -eq [String])"
+          "::endgroup::" 
+
+          if ($cpp.GetType() -eq [String])
+          {
+              $version = $(clang++ --version) -join "`n"
+              echo "Detect ✅: C++">> $env:GITHUB_STEP_SUMMARY
+                echo "lang=1" >> $env:GITHUB_OUTPUT      
+              exit(0)
+          }
+          if ($c.GetType() -eq [String])
+          {
+              $version = $(clang --version) -join "`n"
+              echo "Detect ✅: C">> $env:GITHUB_STEP_SUMMARY
+                echo "lang=2" >> $env:GITHUB_OUTPUT      
+              exit(0)
+          }
+          echo "Detect failed ❌">> $env:GITHUB_STEP_SUMMARY             
+          exit(1)
+          
+      - name: setup-cpp
+        if: ${{ contains(matrix.os, 'ubuntu') }}
+        uses: aminya/setup-cpp@v1
+        with:
+          compiler: llvm-17.0.0
+          vcvarsall: ${{ contains(matrix.os, 'windows') }}  
+      
+      - name: build
+        id: build
+        run: |   
+          echo "#### checking commit: $(git log -n1)" >> $env:GITHUB_STEP_SUMMARY  
+          
+          try 
+          {
+            $ErrorActionPreference = 'SilentlyContinue'
+            $version = ""
+            
+            if ('${{ matrix.os }}' -eq 'windows-latest') 
+            {
+              Push-Location
+              & 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\Launch-VsDevShell.ps1'
+              Pop-Location
+
+              if (${{ steps.detect_lang.outputs.lang }} -eq 2)  #C
+              { & ${{ matrix.compiler }} ${{env.C_FLAG_WINDOWS}}  ${{env.C_ARGS_WINDOWS}} ${{env.EXE}} ${{env.C_FILES}} *>&1 > ${{env.BUILDLOG}} }
+              else
+              { & ${{ matrix.compiler }} ${{env.CPP_FLAG_WINDOWS}}  ${{env.C_ARGS_WINDOWS}} ${{env.EXE}} ${{env.C_FILES}} *>&1 > ${{env.BUILDLOG}} }
+            } 
+            else 
+            {
+              $version = $(${{ matrix.compiler }} --version) -join "`n"              
+              # print cm version
+              echo '```' >> $env:GITHUB_STEP_SUMMARY
+              echo "$($version)">> $env:GITHUB_STEP_SUMMARY
+              echo '```' >> $env:GITHUB_STEP_SUMMARY
+              
+              if (${{ steps.detect_lang.outputs.lang }} -eq 2)  #C
+              { & ${{ matrix.compiler }} ${{env.C_FLAG_LINUX}} ${{env.C_ARGS_LINUX}} ${{env.EXE}} ${{env.C_FILES}} *>&1 > ${{env.BUILDLOG}} }
+              else
+              { & ${{ matrix.compiler }}++ ${{env.CPP_FLAG_LINUX}} ${{env.C_ARGS_LINUX}} ${{env.EXE}} ${{env.C_FILES}} *>&1 > ${{env.BUILDLOG}} }
+            }   
+            $build_exit_code = $LastExitCode 
+          } 
+          catch 
+          {
+            Write-Output "::debug::build failed"
+            $build_exit_code = $LastExitCode
+            Write-Output "❌ build failed!"
+            echo "# Build: 
+               failed" >> $env:GITHUB_STEP_SUMMARY
+            echo "Build exit code: $build_exit_code" >> $env:GITHUB_STEP_SUMMARY
+          } 
+          finally 
+          {
+            $blog = "$(Get-Content ${{env.BUILDLOG}} -Raw)"
+            $blog = if($blog -eq "") { '<emplty>' } else { $blog }
+            $blog1 = $blog.replace("`nMicrosoft (R)", "`n`nMicrosoft (R)")
+
+            echo "# Build log:" >> $env:GITHUB_STEP_SUMMARY
+            echo '```' >> $env:GITHUB_STEP_SUMMARY
+            "$blog1" >> $env:GITHUB_STEP_SUMMARY
+            echo '```' >> $env:GITHUB_STEP_SUMMARY
+              
+            "::group::Build log"
+            echo $blog1
+            ls
+            echo "::endgroup::" 
+          }
+
+          exit($build_exit_code + -not (Test-Path -Path "./${{env.EXE}}" -PathType Leaf))
+                         
+      - name: tests
+        id: tests
+        run: | 
+          $tests = @()
+
+          $tests += New-Object PSObject -Property @{ name="replacement 0"; argv="--replacement 0 --asm rv32.asm"; check_output="" }  
+          $tests += New-Object PSObject -Property @{ name="replacement 1 bin"; argv="--asm rv32.asm --replacement 1 --bin asm2bin.bin"; check_output="asm2bin.bin" }  
+          $tests += New-Object PSObject -Property @{ name="replacement 2 bin"; argv="--bin asm2bin.bin --replacement 2 --asm rv32.asm "; check_output="asm2bin.bin" }  
+          
+          $test_exit_code = $tests.Count
+          echo "# Test log:" >> $env:GITHUB_STEP_SUMMARY
+          foreach ($test in $tests)
+          {
+            echo "---" >> $env:GITHUB_STEP_SUMMARY
+            echo "<details>" >> $env:GITHUB_STEP_SUMMARY  
+            echo "<summary><h2>Test '$($test.name)'</h2></summary>" >> $env:GITHUB_STEP_SUMMARY  
+            "::group::Output log test_$($test.name)"
+            
+            $test_input = $test.argv.split()
+
+            echo "test_input"
+            $test_input
+            echo "detect_lang.outputs.lang"
+            ${{ steps.detect_lang.outputs.lang }}
+            
+            echo "
+            [args]:" >> $env:GITHUB_STEP_SUMMARY            
+              echo '```' >> $env:GITHUB_STEP_SUMMARY
+              "$($test.argv)" >> $env:GITHUB_STEP_SUMMARY
+              echo '```' >> $env:GITHUB_STEP_SUMMARY  
+
+            $pr = Start-Process "./${{env.EXE}}" -PassThru -ArgumentList "$test_input" -RedirectStandardOutput "stdout.log" -RedirectStandardError "stderr.log" -NoNewWindow            
+            Wait-Process -InputObject $pr
+            $exit_code_p = [int]$pr.ExitCode    
+            
+            $stderr = if ((Test-Path -Path stderr.log -PathType Leaf)) { $(Get-Content stderr.log -Raw) } else {'<empty>'}
+            echo "`nstderr"
+            $stderr
+            Test-Path -Path stderr.log -PathType Leaf
+            $stdout = if ((Test-Path -Path stdout.log -PathType Leaf)) { $(Get-Content stdout.log -Raw) } else {'<empty>'}
+            echo "`nstdout"
+            $stdout
+                        
+            $out = if ($test.check_output -eq "" ) { "💠 don't use in this test" } elseif (-not (Test-Path -Path $test.check_output -PathType Leaf) -or ((Get-ChildItem -Path $test.check_output).Length -eq 0)) { "❌ empty or !exists" } else { "✅ !empty" }
+            echo "`nout"
+            $out
+
+            Get-ChildItem -Path .
+                        
+            echo "| exit code | bin file (with '--bin')" >> $env:GITHUB_STEP_SUMMARY   
+            echo "| --- | --- |" >> $env:GITHUB_STEP_SUMMARY    
+            echo "| <code>$exit_code_p</code> | <code>$out</code> |" >> $env:GITHUB_STEP_SUMMARY   
+            
+            echo "
+            [stdout]:" >> $env:GITHUB_STEP_SUMMARY            
+              echo '```' >> $env:GITHUB_STEP_SUMMARY
+              "$stdout" >> $env:GITHUB_STEP_SUMMARY
+              echo '```' >> $env:GITHUB_STEP_SUMMARY  
+                               
+            echo "
+            [stderr]:" >> $env:GITHUB_STEP_SUMMARY              
+            echo '```' >> $env:GITHUB_STEP_SUMMARY
+            "$stderr" >> $env:GITHUB_STEP_SUMMARY
+            echo '```' >> $env:GITHUB_STEP_SUMMARY
+
+            echo "Result:" >> $env:GITHUB_STEP_SUMMARY
+            $verdict = ""
+
+            $error_flag = $false
+            if ((Test-Path -Path stderr.log -PathType Leaf) -and ((Get-ChildItem -Path stderr.log).Length -ne 0))
+            {
+              echo '```' >> $env:GITHUB_STEP_SUMMARY
+              echo "⚠️ [WARN] Stderr is not empty [program completed with code $exit_code_p]" >> $env:GITHUB_STEP_SUMMARY        
+              echo '```' >> $env:GITHUB_STEP_SUMMARY 
+              $verdict = "⚠️ [WARN] Stderr is not empty [program completed with code $exit_code_p]"
+              # $error_flag = $true
+            } 
+            if ($exit_code_p -ne 0)
+            {         
+              echo '```' >> $env:GITHUB_STEP_SUMMARY      
+              echo "❌ [ERROR] Program completed with code $exit_code_p (!= 0)" >> $env:GITHUB_STEP_SUMMARY 
+              echo '```' >> $env:GITHUB_STEP_SUMMARY 
+              $verdict = "❌ [ERROR] Program completed with code $exit_code_p (!= 0)"
+              $error_flag = $true
+            }   
+            if (-not (Test-Path -Path stdout.log -PathType Leaf) -or ($stdout -eq '<empty>'))
+            {
+              echo '```' >> $env:GITHUB_STEP_SUMMARY
+              echo "❌ [ERROR] Stdout is empty [program completed with code $exit_code_p]" >> $env:GITHUB_STEP_SUMMARY  
+              echo '```' >> $env:GITHUB_STEP_SUMMARY  
+              $verdict = "❌ [ERROR] Stdout is empty [program completed with code $exit_code_p]"
+              $error_flag = $true   
+            }
+            if (-not $error_flag)
+            {
+              if ($out -eq "❌ empty or !exists")
+              {                
+                echo '```' >> $env:GITHUB_STEP_SUMMARY
+                echo "❌ [ERROR] Output file (arg '--bin') not exists or is empty [program completed with code $exit_code_p]" >> $env:GITHUB_STEP_SUMMARY  
+                echo '```' >> $env:GITHUB_STEP_SUMMARY  
+                $verdict = "❌ [ERROR] Output file (arg '--bin') not exists or is empty [program completed with code $exit_code_p]"
+                $test_exit_code -= 0
+              }
+              else
+              {
+                echo '```' >> $env:GITHUB_STEP_SUMMARY
+                echo "✅ PASSED (check manually)" >> $env:GITHUB_STEP_SUMMARY
+                echo '```' >> $env:GITHUB_STEP_SUMMARY
+                $verdict = "✅ PASSED (check manually)"
+                $test_exit_code -= 1
+
+                if ($test.check_output -ne "")
+                {
+                  echo "output file (binary):" >> $env:GITHUB_STEP_SUMMARY
+                  echo '```' >> $env:GITHUB_STEP_SUMMARY
+                  echo "$(Get-Content $test.check_output -Raw)" >> $env:GITHUB_STEP_SUMMARY
+                  echo '```' >> $env:GITHUB_STEP_SUMMARY
+                }
+              }
+            }
+            echo "</details>" >> $env:GITHUB_STEP_SUMMARY
+            echo "<h3>Test '$($test.name)':</h3>" >> $env:GITHUB_STEP_SUMMARY  
+            echo "
+            [stdout]:" >> $env:GITHUB_STEP_SUMMARY            
+              echo '```' >> $env:GITHUB_STEP_SUMMARY
+              "$stdout" >> $env:GITHUB_STEP_SUMMARY
+              echo '```' >> $env:GITHUB_STEP_SUMMARY  
+            echo "
+            [result]:" >> $env:GITHUB_STEP_SUMMARY            
+              echo '```' >> $env:GITHUB_STEP_SUMMARY
+              "$verdict" >> $env:GITHUB_STEP_SUMMARY
+              echo '```' >> $env:GITHUB_STEP_SUMMARY  
+            "::endgroup::"
+            echo "---" >> $env:GITHUB_STEP_SUMMARY
+          }
+          
+          exit($test_exit_code)
