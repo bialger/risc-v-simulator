@@ -1,4 +1,7 @@
 add_library(cache STATIC
     Cache.hpp
-    Cache.cpp
+        LRUPolicy.cpp
+        LRUPolicy.hpp
+        BitpLRUPolicy.cpp
+        BitpLRUPolicy.hpp
 )
