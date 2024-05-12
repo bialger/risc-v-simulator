@@ -6,7 +6,7 @@
 
 class ProcessMemory {
  public:
-  ProcessMemory() = default;
+  ProcessMemory();
 
   void WriteByte(size_t address, uint8_t data);
   void WriteHalfWord(size_t address, uint16_t data);
@@ -16,7 +16,7 @@ class ProcessMemory {
   uint16_t ReadHalfWord(size_t address);
   uint32_t ReadWord(size_t address);
  private:
-  std::vector<uint8_t> memory;
+  std::vector<uint8_t> memory_;
 
   void Write(size_t address, const std::vector<uint8_t>& data);
   std::vector<uint8_t> Read(size_t address, size_t size);

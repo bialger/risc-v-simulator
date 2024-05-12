@@ -1,24 +1,26 @@
 #include "ProcessMemory.hpp"
 
+ProcessMemory::ProcessMemory() : memory_(0x10000) {}
+
 void ProcessMemory::Write(size_t address, const std::vector<uint8_t>& data) {
-  if (address + data.size() > memory.size()) {
-    memory.resize(address + data.size());
+  if (address + data.size() > memory_.size()) {
+    memory_.resize(address + data.size());
   }
 
   for (size_t i = 0; i < data.size(); ++i) {
-    memory[address + i] = data[i];
+    memory_[address + i] = data[i];
   }
 }
 
 std::vector<uint8_t> ProcessMemory::Read(size_t address, size_t size) {
-  if (address + size > memory.size()) {
+  if (address + size > memory_.size()) {
     return std::vector<uint8_t>(size);
   }
 
   std::vector<uint8_t> data(size);
 
   for (size_t i = 0; i < size; ++i) {
-    data[i] = memory[address + i];
+    data[i] = memory_[address + i];
   }
 
   return data;
