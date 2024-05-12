@@ -7,4 +7,8 @@ add_library(asm_riscv STATIC
         RISCVAssemblerToBinary.hpp
         RISCVAssemblerCommand.cpp
         RISCVAssemblerCommand.hpp
+        RISCVRegisters.cpp
+        RISCVRegisters.hpp
+        ProcessMemory.cpp
+        ProcessMemory.hpp
 )
