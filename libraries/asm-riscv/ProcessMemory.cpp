@@ -12,7 +12,7 @@ void ProcessMemory::Write(size_t address, const std::vector<uint8_t>& data) {
   }
 }
 
-std::vector<uint8_t> ProcessMemory::Read(size_t address, size_t size) {
+std::vector<uint8_t> ProcessMemory::Read(size_t address, size_t size) const {
   if (address + size > memory_.size()) {
     return std::vector<uint8_t>(size);
   }
@@ -46,16 +46,16 @@ void ProcessMemory::WriteWord(size_t address, uint32_t data) {
   Write(address, result);
 }
 
-uint8_t ProcessMemory::ReadByte(size_t address) {
+uint8_t ProcessMemory::ReadByte(size_t address) const {
   return Read(address, 1)[0];
 }
 
-uint16_t ProcessMemory::ReadHalfWord(size_t address) {
+uint16_t ProcessMemory::ReadHalfWord(size_t address) const {
   std::vector<uint8_t> data = Read(address, 2);
   return (data[1] << 8) | data[0];
 }
 
-uint32_t ProcessMemory::ReadWord(size_t address) {
+uint32_t ProcessMemory::ReadWord(size_t address) const {
   std::vector<uint8_t> data = Read(address, 4);
   return (data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0];
 }

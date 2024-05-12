@@ -2,7 +2,7 @@
 
 RISCVRegisters::RISCVRegisters() : registers_(32, 0), pc_(0) {}
 
-int32_t RISCVRegisters::GetRegister(size_t index) {
+int32_t RISCVRegisters::GetRegister(size_t index) const {
   if (index >= registers_.size() || index == 0) {
     return 0;
   }
@@ -10,7 +10,7 @@ int32_t RISCVRegisters::GetRegister(size_t index) {
   return registers_[index];
 }
 
-uint32_t RISCVRegisters::GetPC() {
+uint32_t RISCVRegisters::GetPC() const {
   return pc_;
 }
 
