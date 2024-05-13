@@ -337,7 +337,11 @@ int32_t RISCVAssemblerCommand::GetValue() const {
 }
 
 int32_t RISCVAssemblerCommand::SignExtended12Bits(int32_t value) {
-  uint32_t pre_result = std::abs(value) & 0xfff;
+  if ((std::abs(value) & 0xfff) == 0x800 && value < 0) {
+    return -0x800;
+  }
+
+  uint32_t pre_result = std::abs(value) & 0x7ff;
   return static_cast<int32_t>(pre_result) * (value < 0 ? -1 : 1);
 }
 
