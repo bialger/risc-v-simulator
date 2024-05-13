@@ -1,6 +1,6 @@
 #include "ProcessMemory.hpp"
 
-ProcessMemory::ProcessMemory() : memory_(0x10000) {}
+ProcessMemory::ProcessMemory() : memory_(MEM_SIZE) {}
 
 void ProcessMemory::Write(size_t address, const std::vector<uint8_t>& data) {
   if (address + data.size() > memory_.size()) {

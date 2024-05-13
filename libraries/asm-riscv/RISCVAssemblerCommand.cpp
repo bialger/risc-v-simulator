@@ -1,5 +1,8 @@
 #include <stdexcept>
+#include <limits>
+
 #include "RISCVAssemblerCommand.hpp"
+
 RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
                                              uint8_t reg1,
                                              uint8_t reg2,
@@ -151,20 +154,20 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
     };
   } else if (command_name == "sb") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
-      uint8_t result = static_cast<uint8_t>(registers.GetRegister(reg2) & 0xff);
-      memory.WriteByte(registers.GetRegister(reg1) + SignExtended12Bits(value), result);
+      uint8_t result = static_cast<uint8_t>(registers.GetRegister(reg1) & 0xff);
+      memory.WriteByte(registers.GetRegister(reg2) + SignExtended12Bits(value), result);
       return 0;
     };
   } else if (command_name == "sh") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
-      uint16_t result = static_cast<uint16_t>(registers.GetRegister(reg2) & 0xffff);
-      memory.WriteHalfWord(registers.GetRegister(reg1) + SignExtended12Bits(value), result);
+      uint16_t result = static_cast<uint16_t>(registers.GetRegister(reg1) & 0xffff);
+      memory.WriteHalfWord(registers.GetRegister(reg2) + SignExtended12Bits(value), result);
       return 0;
     };
   } else if (command_name == "sw") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
-      uint32_t result = static_cast<uint32_t>(registers.GetRegister(reg2));
-      memory.WriteWord(registers.GetRegister(reg1) + SignExtended12Bits(value), result);
+      uint32_t result = static_cast<uint32_t>(registers.GetRegister(reg1));
+      memory.WriteWord(registers.GetRegister(reg2) + SignExtended12Bits(value), result);
       return 0;
     };
   } else if (command_name == "jal") {
@@ -264,22 +267,46 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
     };
   } else if (command_name == "div") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
+      if (registers.GetRegister(value) == 0) { // division by zero
+        registers.SetRegister(reg1, -1);
+      } else if (registers.GetRegister(reg2) == std::numeric_limits<int32_t>::min() && registers.GetRegister(value) == -1) { // arithmetic overflow
+        registers.SetRegister(reg1, registers.GetRegister(reg2));
+      }
+
       registers.SetRegister(reg1, registers.GetRegister(reg2) / registers.GetRegister(value));
       return 0;
     };
   } else if (command_name == "divu") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
+      if (registers.GetRegister(value) == 0) { // division by zero
+        registers.SetRegister(reg1, static_cast<int32_t>(std::numeric_limits<uint32_t>::max()));
+      } else if (registers.GetRegister(reg2) == std::numeric_limits<int32_t>::min() && registers.GetRegister(value) == -1) { // arithmetic overflow
+        registers.SetRegister(reg1, 0);
+      }
+
       uint32_t result = static_cast<uint32_t>(registers.GetRegister(reg2)) / static_cast<uint32_t>(registers.GetRegister(value));
-      registers.SetRegister(reg1, static_cast<uint32_t>(result));
+      registers.SetRegister(reg1, static_cast<int32_t>(result));
       return 0;
     };
   } else if (command_name == "rem") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
+      if (registers.GetRegister(value) == 0) { // division by zero
+        registers.SetRegister(reg1, registers.GetRegister(reg2));
+      } else if (registers.GetRegister(reg2) == std::numeric_limits<int32_t>::min() && registers.GetRegister(value) == -1) { // arithmetic overflow
+        registers.SetRegister(reg1, 0);
+      }
+
       registers.SetRegister(reg1, registers.GetRegister(reg2) % registers.GetRegister(value));
       return 0;
     };
   } else if (command_name == "remu") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
+      if (registers.GetRegister(value) == 0) { // division by zero
+        registers.SetRegister(reg1, registers.GetRegister(reg2));
+      } else if (registers.GetRegister(reg2) == std::numeric_limits<int32_t>::min() && registers.GetRegister(value) == -1) { // arithmetic overflow
+        registers.SetRegister(reg1, 0);
+      }
+
       uint32_t result = static_cast<uint32_t>(registers.GetRegister(reg2)) % static_cast<uint32_t>(registers.GetRegister(value));
       registers.SetRegister(reg1, static_cast<int32_t>(result));
       return 0;
