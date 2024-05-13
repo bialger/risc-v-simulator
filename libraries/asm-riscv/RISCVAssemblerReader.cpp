@@ -54,7 +54,7 @@ void RISCVAssemblerReader::PreProcess() {
     for (auto& word : line) {
       for (auto it = word.begin(); it != word.end(); ++it) {
         if (*it == '(') {
-          std::string new_word = word.substr(it - word.begin() + 1, word.end() - it - 1);
+          std::string new_word = word.substr(it - word.begin() + 1, word.end() - it - 2);
           word.erase(it, word.end());
           line.push_back(new_word);
           break;
