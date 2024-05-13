@@ -7,4 +7,10 @@ add_executable(${PROJECT_NAME}
         main.cpp
 )
 
+target_link_libraries(${PROJECT_NAME} PUBLIC
+        argparser
+        riscv_asm
+        cache
+)
+
 add_subdirectory(libraries)

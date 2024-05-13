@@ -1,6 +1,6 @@
 add_library(asm_riscv STATIC
-    RISCVAssemblerReader.cpp
-    RISCVAssemblerReader.hpp
+        RISCVAssemblerReader.cpp
+        RISCVAssemblerReader.hpp
         RISCVCommandExecutor.cpp
         RISCVCommandExecutor.hpp
         RISCVAssemblerToBinary.cpp
@@ -11,4 +11,8 @@ add_library(asm_riscv STATIC
         RISCVRegisters.hpp
         ProcessMemory.cpp
         ProcessMemory.hpp
+)
+
+target_link_libraries(asm_riscv PUBLIC
+        cache
 )
