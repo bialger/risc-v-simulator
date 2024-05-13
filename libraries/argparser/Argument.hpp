@@ -5,7 +5,7 @@
 #include <vector>
 #include <functional>
 
-#include "lib/argparser/basic/BasicFunctions.hpp"
+#include "libraries/argparser/basic/BasicFunctions.hpp"
 
 class CompositeString : public std::string {
  private:
