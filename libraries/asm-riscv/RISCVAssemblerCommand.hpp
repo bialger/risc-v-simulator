@@ -1,11 +1,11 @@
 #ifndef LIBRARIES_ASM_RISCV_RISCVASSEMBLERCOMMAND_HPP_
 #define LIBRARIES_ASM_RISCV_RISCVASSEMBLERCOMMAND_HPP_
 
-#include "RISCVRegisters.hpp"
-#include "ProcessMemory.hpp"
-
 #include <functional>
 #include <string>
+
+#include "RISCVRegisters.hpp"
+#include "ProcessMemory.hpp"
 
 class RISCVAssemblerCommand {
  public:
