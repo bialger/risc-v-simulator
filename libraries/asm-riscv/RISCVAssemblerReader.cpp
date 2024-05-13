@@ -1,6 +1,7 @@
 #include <fstream>
 #include <sstream>
 #include <iterator>
+#include <limits>
 
 #include "RISCVAssemblerReader.hpp"
 
@@ -143,7 +144,7 @@ RISCVAssemblerCommand RISCVAssemblerReader::ProcessLine(const std::vector<std::s
     if (line[1][0] == 'x') {
       reg1 = std::stoi(line[1].substr(1));
     } else {
-      value = std::stoi(line[1]);
+      value = GetInteger(line[1]);
     }
   } else if (line.size() == 3) {
     reg1 = std::stoi(line[1].substr(1));
@@ -151,21 +152,27 @@ RISCVAssemblerCommand RISCVAssemblerReader::ProcessLine(const std::vector<std::s
     if (line[2][0] == 'x') {
       reg2 = std::stoi(line[2].substr(1));
     } else {
-      value = std::stoi(line[2]);
+      value = GetInteger(line[2]);
     }
   } else if (line.size() == 4) {
     reg1 = std::stoi(line[1].substr(1));
 
     if (line[2][0] == 'x') {
       reg2 = std::stoi(line[2].substr(1));
-    } else {
-      value = std::stoi(line[2]);
-    }
 
-    if (line[3][0] == 'x') {
-      value = std::stoi(line[3].substr(1));
+      if (line[3][0] == 'x') {
+        value = std::stoi(line[3].substr(1));
+      } else {
+        value = GetInteger(line[3]);
+      }
     } else {
-      value = std::stoi(line[3]);
+      value = GetInteger(line[2]);
+
+      if (line[3][0] == 'x') {
+        reg2 = std::stoi(line[3].substr(1));
+      } else {
+        value = GetInteger(line[3]);
+      }
     }
   }
 
@@ -182,4 +189,20 @@ void RISCVAssemblerReader::Process() {
 
 std::vector<RISCVAssemblerCommand> RISCVAssemblerReader::GetCommands() {
   return commands_;
+}
+
+int32_t RISCVAssemblerReader::GetInteger(const std::string& str) {
+  int32_t save_errno = errno;
+  errno = 0;
+  char* end;
+  int64_t pre_value = std::strtoll(str.c_str(), &end, 0);
+
+  if (end == str.c_str() || *end != '\0' ||
+      ((pre_value <= std::numeric_limits<int32_t>::min() || pre_value >= std::numeric_limits<int32_t>::max()) &&
+          errno == ERANGE)) {
+    errno = save_errno;
+    throw std::runtime_error("Invalid integer " + str);
+  } else {
+    return static_cast<int32_t>(pre_value);
+  }
 }

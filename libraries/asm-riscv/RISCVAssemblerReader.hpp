@@ -19,6 +19,7 @@ class RISCVAssemblerReader {
   std::vector<RISCVAssemblerCommand> commands_;
 
   void PreProcess();
+  static int32_t GetInteger(const std::string& str);
   static RISCVAssemblerCommand ProcessLine(const std::vector<std::string>& line);
 };
 
