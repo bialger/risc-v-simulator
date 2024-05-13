@@ -1,8 +1,8 @@
 add_library(asm_riscv STATIC
     RISCVAssemblerReader.cpp
     RISCVAssemblerReader.hpp
-        RISCVComandExecutor.cpp
-        RISCVComandExecutor.hpp
+        RISCVCommandExecutor.cpp
+        RISCVCommandExecutor.hpp
         RISCVAssemblerToBinary.cpp
         RISCVAssemblerToBinary.hpp
         RISCVAssemblerCommand.cpp
