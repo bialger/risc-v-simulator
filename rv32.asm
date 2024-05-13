@@ -26,9 +26,9 @@ add     s3, s3, t5 // pb = pb + N;
 addi    t2, t2, 0x1 // k++;
 jal     zero, -44 // repeat k-cycle that consists of 11 operations not including this
 add     s11, s2, t1 // &pc[x / 4] = pc + x; because pc points to 32-bit integer
-add     s11, s2, t1 // &pc[x / 2] = &pc[x / 4] + x;
-add     s11, s2, t1 // &pc[3x / 4] =  &pc[x / 2] + x;
-add     s11, s2, t1 // &pc[x] = &pc[3x / 4] + x;
+add     s11, s11, t1 // &pc[x / 2] = &pc[x / 4] + x;
+add     s11, s11, t1 // &pc[3x / 4] =  &pc[x / 2] + x;
+add     s11, s11, t1 // &pc[x] = &pc[3x / 4] + x;
 sw      s4, 0(s11) // pc[x] = s;
 addi    t1, t1, 0x1 // x++;
 jal     zero, -92 // repeat x-cycle that consists of 23 operations not including this
