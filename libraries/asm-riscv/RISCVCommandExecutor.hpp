@@ -10,6 +10,9 @@ class RISCVCommandExecutor {
 
   void Execute();
 
+  [[nodiscard]] float GetLRUHitRate() const;
+  [[nodiscard]] float GetBitpLRUHitRate() const;
+
  private:
   std::vector<RISCVAssemblerCommand> commands_;
   ProcessMemory memory_;

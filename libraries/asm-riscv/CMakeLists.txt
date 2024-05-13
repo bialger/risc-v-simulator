@@ -16,3 +16,7 @@ add_library(asm_riscv STATIC
 target_link_libraries(asm_riscv PUBLIC
         cache
 )
+
+target_include_directories(asm_riscv PUBLIC
+        ${PROJECT_SOURCE_DIR}
+)

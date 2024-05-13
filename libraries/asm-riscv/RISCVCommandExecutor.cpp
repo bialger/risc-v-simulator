@@ -40,3 +40,11 @@ void RISCVCommandExecutor::Execute() {
     throw std::runtime_error("PC out of bounds");
   }
 }
+
+float RISCVCommandExecutor::GetLRUHitRate() const {
+  return memory_.GetLRUHitRate();
+}
+
+float RISCVCommandExecutor::GetBitpLRUHitRate() const {
+  return memory_.GetBitpLRUHitRate();
+}

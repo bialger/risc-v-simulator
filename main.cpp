@@ -49,5 +49,17 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  int32_t policy = parser.GetIntValue("replacement");
+  float lru_rate = executor.GetLRUHitRate() * 100;
+  float bitp_lru_rate = executor.GetBitpLRUHitRate();
+
+  if (policy == 0) {
+    printf("LRU\thit rate: %3.4f%%\npLRU\thit rate: %3.4f%%\n", lru_rate, bitp_lru_rate);
+  } else if (policy == 1) {
+    printf("LRU\thit rate: %3.4f%%\n", lru_rate);
+  } else if (policy == 2) {
+    printf("pLRU\thit rate: %3.4f%%\n", bitp_lru_rate);
+  }
+
   return 0;
 }
