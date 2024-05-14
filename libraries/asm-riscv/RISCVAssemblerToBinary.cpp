@@ -1,3 +1,4 @@
+#include <iostream>
 #include "RISCVAssemblerToBinary.hpp"
 
 uint32_t RISCVAssemblerToBinary::ToBinary(const RISCVAssemblerCommand& command) {
@@ -68,27 +69,48 @@ uint32_t RISCVAssemblerToBinary::ToBinary(const RISCVAssemblerCommand& command) 
   } else if (command_name == "lhu") {
     result = (imm_j << 20) | (reg2 << 15) | (0b101 << 12) | (reg1 << 7) | 0b0000011;
   } else if (command_name == "sb") {
-    result = (imm_j << 20) | (reg1 << 15) | (reg2 << 7) | 0b0100011;
+    result = ((imm_j & 0xfe0) << 20) | (reg1 << 20) | (reg2 << 15) | ((imm_j & 0x1f) << 7) | 0b0100011;
   } else if (command_name == "sh") {
-    result = (imm_j << 20) | (reg1 << 15) | (0b001 << 12) | (reg2 << 7) | 0b0100011;
+    result = ((imm_j & 0xfe0) << 20) | (reg1 << 20) | (reg2 << 15) | (0b001 << 12) | ((imm_j & 0x1f) << 7) | 0b0100011;
   } else if (command_name == "sw") {
-    result = (imm_j << 20) | (reg1 << 15) | (0b010 << 12) | (reg2 << 7) | 0b0100011;
+    result = ((imm_j & 0xfe0) << 20) | (reg1 << 20) | (reg2 << 15) | (0b010 << 12) | ((imm_j & 0x1f) << 7) | 0b0100011;
   } else if (command_name == "jal") {
-    result = (imm_u << 12) | (reg1 << 7) | 0b1101111;
+    uint32_t imm_v = value & 0x1ffffe;
+    uint32_t hi = ((imm_v >> 20) << 11) | (imm_v & 0b11111111110) | ((imm_v & 0b100000000000) >> 11);
+    uint32_t lo = (imm_v >> 12) & 0x1f;
+    result = (hi << 20) | (lo << 12) | (reg1 << 7) | 0b1101111;
   } else if (command_name == "jalr") {
     result = (imm_j << 20) | (reg2 << 15) | (reg1 << 7) | 0b1100111;
   } else if (command_name == "beq") {
-    result = ((imm_j & 0xfe0) << 20) | (reg2 << 20) | (reg1 << 15) | ((imm_j & 0x1f) << 7) | 0b1100011;
+    uint32_t imm_i = imm_u & 0x1ffe;
+    uint32_t hi = ((imm_i & 0x1000) >> 1) | (imm_i & 0b11111100000);
+    uint32_t lo = (imm_i & 0b11110) | ((imm_i & 0b100000000000) >> 11);
+    result = (hi << 20) | (reg2 << 20) | (reg1 << 15) | (lo << 7) | 0b1100011;
   } else if (command_name == "bne") {
-    result = ((imm_j & 0xfe0) << 20) | (reg2 << 20) | (reg1 << 15) | (0b001 << 12) | ((imm_j & 0x1f) << 7) | 0b1100011;
+    uint32_t imm_i = imm_u & 0x1ffe;
+    uint32_t hi = ((imm_i & 0x1000) >> 1) | (imm_i & 0b11111100000);
+    uint32_t lo = (imm_i & 0b11110) | ((imm_i & 0b100000000000) >> 11);
+    result = (hi << 20) | (reg2 << 20) | (reg1 << 15) | (0b001 << 12) | (lo << 7) | 0b1100011;
   } else if (command_name == "blt") {
-    result = ((imm_j & 0xfe0) << 20) | (reg2 << 20) | (reg1 << 15) | (0b100 << 12) | ((imm_j & 0x1f) << 7) | 0b1100011;
+    uint32_t imm_i = imm_u & 0x1ffe;
+    uint32_t hi = ((imm_i & 0x1000) >> 1) | (imm_i & 0b11111100000);
+    uint32_t lo = (imm_i & 0b11110) | ((imm_i & 0b100000000000) >> 11);
+    result = (hi << 20) | (reg2 << 20) | (reg1 << 15) | (0b100 << 12) | (lo << 7) | 0b1100011;
   } else if (command_name == "bge") {
-    result = ((imm_j & 0xfe0) << 20) | (reg2 << 20) | (reg1 << 15) | (0b101 << 12) | ((imm_j & 0x1f) << 7) | 0b1100011;
+    uint32_t imm_i = imm_u & 0x1ffe;
+    uint32_t hi = ((imm_i & 0x1000) >> 1) | (imm_i & 0b11111100000);
+    uint32_t lo = (imm_i & 0b11110) | ((imm_i & 0b100000000000) >> 11);
+    result = (hi << 20) | (reg2 << 20) | (reg1 << 15) | (0b101 << 12) | (lo << 7) | 0b1100011;
   } else if (command_name == "bltu") {
-    result = ((imm_j & 0xfe0) << 20) | (reg2 << 20) | (reg1 << 15) | (0b110 << 12) | ((imm_j & 0x1f) << 7) | 0b1100011;
+    uint32_t imm_i = imm_u & 0x1ffe;
+    uint32_t hi = ((imm_i & 0x1000) >> 1) | (imm_i & 0b11111100000);
+    uint32_t lo = (imm_i & 0b11110) | ((imm_i & 0b100000000000) >> 11);
+    result = (hi << 20) | (reg2 << 20) | (reg1 << 15) | (0b110 << 12) | (lo << 7) | 0b1100011;
   } else if (command_name == "bgeu") {
-    result = ((imm_j & 0xfe0) << 20) | (reg2 << 20) | (reg1 << 15) | (0b111 << 12) | ((imm_j & 0x1f) << 7) | 0b1100011;
+    uint32_t imm_i = imm_u & 0x1ffe;
+    uint32_t hi = ((imm_i & 0x1000) >> 1) | (imm_i & 0b11111100000);
+    uint32_t lo = (imm_i & 0b11110) | ((imm_i & 0b100000000000) >> 11);
+    result = (hi << 20) | (reg2 << 20) | (reg1 << 15) | (0b111 << 12) | (lo << 7) | 0b1100011;
   } else if (command_name == "mul") {
     result = (0b1 << 25) | (reg3 << 20) | (reg2 << 15) | (reg1 << 7) | 0b0110011;
   } else if (command_name == "mulh") {
