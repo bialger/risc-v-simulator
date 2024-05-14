@@ -4,9 +4,9 @@
 #include <cstdint>
 #include <vector>
 
-#include "libraries/cache/Cache.hpp"
-#include "libraries/cache/LRUPolicy.hpp"
-#include "libraries/cache/BitpLRUPolicy.hpp"
+#include "../cache/Cache.hpp"
+#include "../cache/LRUPolicy.hpp"
+#include "../cache/BitpLRUPolicy.hpp"
 
 class ProcessMemory {
  public:
