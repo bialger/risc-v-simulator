@@ -287,8 +287,6 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
       if (registers.GetRegister(value) == 0) { // division by zero
         registers.SetRegister(reg1, static_cast<int32_t>(std::numeric_limits<uint32_t>::max()));
-      } else if (registers.GetRegister(reg2) == std::numeric_limits<int32_t>::min() && registers.GetRegister(value) == -1) { // arithmetic overflow
-        registers.SetRegister(reg1, 0);
       }
 
       uint32_t result = static_cast<uint32_t>(registers.GetRegister(reg2)) / static_cast<uint32_t>(registers.GetRegister(value));
@@ -310,8 +308,6 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
       if (registers.GetRegister(value) == 0) { // division by zero
         registers.SetRegister(reg1, registers.GetRegister(reg2));
-      } else if (registers.GetRegister(reg2) == std::numeric_limits<int32_t>::min() && registers.GetRegister(value) == -1) { // arithmetic overflow
-        registers.SetRegister(reg1, 0);
       }
 
       uint32_t result = static_cast<uint32_t>(registers.GetRegister(reg2)) % static_cast<uint32_t>(registers.GetRegister(value));
