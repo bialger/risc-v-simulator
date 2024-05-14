@@ -1,4 +1,5 @@
 #include <stdexcept>
+
 #include "RISCVCommandExecutor.hpp"
 
 RISCVCommandExecutor::RISCVCommandExecutor(const std::vector<RISCVAssemblerCommand>& commands)

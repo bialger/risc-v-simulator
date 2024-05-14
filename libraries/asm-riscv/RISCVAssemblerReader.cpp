@@ -1,7 +1,7 @@
 #include <iterator>
 #include <limits>
 #include <algorithm>
-#include <exception>
+#include <stdexcept>
 
 #include "RISCVAssemblerReader.hpp"
 
