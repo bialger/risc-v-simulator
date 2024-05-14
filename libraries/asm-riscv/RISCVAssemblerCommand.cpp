@@ -161,19 +161,19 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
     };
   } else if (command_name == "sb") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
-      uint8_t result = static_cast<uint8_t>(registers.GetRegister(reg1) & 0xff);
+      auto result = static_cast<uint8_t>(registers.GetRegister(reg1) & 0xff);
       memory.WriteByte(registers.GetRegister(reg2) + SignExtended12Bits(value), result);
       return 0;
     };
   } else if (command_name == "sh") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
-      uint16_t result = static_cast<uint16_t>(registers.GetRegister(reg1) & 0xffff);
+      auto result = static_cast<uint16_t>(registers.GetRegister(reg1) & 0xffff);
       memory.WriteHalfWord(registers.GetRegister(reg2) + SignExtended12Bits(value), result);
       return 0;
     };
   } else if (command_name == "sw") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
-      uint32_t result = static_cast<uint32_t>(registers.GetRegister(reg1));
+      auto result = static_cast<uint32_t>(registers.GetRegister(reg1));
       memory.WriteWord(registers.GetRegister(reg2) + SignExtended12Bits(value), result);
       return 0;
     };
@@ -185,7 +185,7 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
     };
   } else if (command_name == "jalr") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
-      int32_t t = static_cast<int32_t>(registers.GetPC() + 4);
+      auto t = static_cast<int32_t>(registers.GetPC() + 4);
       int32_t address = registers.GetRegister(reg2) + SignExtended12Bits(value);
 
       if (address == 0) {
@@ -262,7 +262,7 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
     };
   } else if (command_name == "mulhsu") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
-      int64_t result = static_cast<int64_t>(registers.GetRegister(reg2)) * static_cast<uint64_t>(registers.GetRegister(value));
+      auto result = static_cast<int64_t>(registers.GetRegister(reg2)) * static_cast<uint64_t>(registers.GetRegister(value));
       registers.SetRegister(reg1, static_cast<int32_t>(result >> 32));
       return 0;
     };

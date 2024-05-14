@@ -59,6 +59,7 @@ class Cache {
 
   void Read(size_t address, size_t size) {
     ++requests_count_;
+    address = address & ((1 << (ADDR_LEN + 1)) - 1);
     auto tag = static_cast<int32_t>(address >> (CACHE_INDEX_LEN + CACHE_OFFSET_LEN));
     size_t index = (address >> CACHE_OFFSET_LEN) & ((1 << CACHE_INDEX_LEN) - 1);
 
@@ -67,8 +68,9 @@ class Cache {
 
   void Write(size_t address, size_t size) {
     ++requests_count_;
+    address = address & ((1 << (ADDR_LEN + 1)) - 1);
     auto tag = static_cast<int32_t>(address >> (CACHE_INDEX_LEN + CACHE_OFFSET_LEN));
-    size_t index = (address >> CACHE_OFFSET_LEN) % (1 << CACHE_INDEX_LEN);
+    size_t index = (address >> CACHE_OFFSET_LEN) & ((1 << CACHE_INDEX_LEN) - 1);
 
     HandleRequest(index, tag);
   }
