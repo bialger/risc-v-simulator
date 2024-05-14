@@ -6,7 +6,7 @@ BitpLRUPolicy::BitpLRUPolicy(std::vector<std::vector<int>>& cache)
     line.resize(CACHE_WAY);
 
     for (int32_t& word : line) {
-      word = 0;
+      word = -1;
     }
   }
 }
