@@ -5,6 +5,94 @@
 
 RISCVAssemblerReader::RISCVAssemblerReader(std::vector<std::vector<std::string>>& lines) : lines_(lines), commands_() {}
 
+void RISCVAssemblerReader::PreProcessLine(std::vector<std::string>& line) {
+  for (auto& word : line) {
+    if (word.back() == ',') {
+      word.pop_back();
+    }
+
+    std::transform(word.begin(), word.end(), word.begin(),
+                   [](unsigned char c){ return std::tolower(c); });
+
+    for (auto it = word.begin(); it != word.end(); ++it) {
+      if (*it == '(') {
+        std::string new_word = word.substr(it - word.begin() + 1, word.end() - it - 2);
+        word.erase(it, word.end());
+        line.push_back(new_word);
+        break;
+      }
+    }
+  }
+
+  for (auto& word : line) {
+    if (word == "zero") {
+      word = "x0";
+    } else if (word == "ra") {
+      word = "x1";
+    } else if (word == "sp") {
+      word = "x2";
+    } else if (word == "gp") {
+      word = "x3";
+    } else if (word == "tp") {
+      word = "x4";
+    } else if (word == "t0") {
+      word = "x5";
+    } else if (word == "t1") {
+      word = "x6";
+    } else if (word == "t2") {
+      word = "x7";
+    } else if (word == "s0" || word == "fp") {
+      word = "x8";
+    } else if (word == "s1") {
+      word = "x9";
+    } else if (word == "a0") {
+      word = "x10";
+    } else if (word == "a1") {
+      word = "x11";
+    } else if (word == "a2") {
+      word = "x12";
+    } else if (word == "a3") {
+      word = "x13";
+    } else if (word == "a4") {
+      word = "x14";
+    } else if (word == "a5") {
+      word = "x15";
+    } else if (word == "a6") {
+      word = "x16";
+    } else if (word == "a7") {
+      word = "x17";
+    } else if (word == "s2") {
+      word = "x18";
+    } else if (word == "s3") {
+      word = "x19";
+    } else if (word == "s4") {
+      word = "x20";
+    } else if (word == "s5") {
+      word = "x21";
+    } else if (word == "s6") {
+      word = "x22";
+    } else if (word == "s7") {
+      word = "x23";
+    } else if (word == "s8") {
+      word = "x24";
+    } else if (word == "s9") {
+      word = "x25";
+    } else if (word == "s10") {
+      word = "x26";
+    } else if (word == "s11") {
+      word = "x27";
+    } else if (word == "t3") {
+      word = "x28";
+    } else if (word == "t4") {
+      word = "x29";
+    } else if (word == "t5") {
+      word = "x30";
+    } else if (word == "t6") {
+      word = "x31";
+    }
+  }
+}
+
 void RISCVAssemblerReader::PreProcess() {
   for (auto& line : lines_) {
     for (auto it = line.begin(); it != line.end(); ++it) {
@@ -23,101 +111,7 @@ void RISCVAssemblerReader::PreProcess() {
   }
 
   for (auto& line : lines_) {
-    for (auto& word : line) {
-      std::transform(word.begin(), word.end(), word.begin(),
-                     [](unsigned char c){ return std::tolower(c); });
-    }
-  }
-
-  for (auto& line : lines_) {
-    for (auto& word : line) {
-      if (word.back() == ',') {
-        word.pop_back();
-      }
-    }
-  }
-
-  for (auto& line : lines_) {
-    for (auto& word : line) {
-      for (auto it = word.begin(); it != word.end(); ++it) {
-        if (*it == '(') {
-          std::string new_word = word.substr(it - word.begin() + 1, word.end() - it - 2);
-          word.erase(it, word.end());
-          line.push_back(new_word);
-          break;
-        }
-      }
-    }
-  }
-
-  for (auto& line : lines_) {
-    for (auto& word : line) {
-      if (word == "zero") {
-        word = "x0";
-      } else if (word == "ra") {
-        word = "x1";
-      } else if (word == "sp") {
-        word = "x2";
-      } else if (word == "gp") {
-        word = "x3";
-      } else if (word == "tp") {
-        word = "x4";
-      } else if (word == "t0") {
-        word = "x5";
-      } else if (word == "t1") {
-        word = "x6";
-      } else if (word == "t2") {
-        word = "x7";
-      } else if (word == "s0" || word == "fp") {
-        word = "x8";
-      } else if (word == "s1") {
-        word = "x9";
-      } else if (word == "a0") {
-        word = "x10";
-      } else if (word == "a1") {
-        word = "x11";
-      } else if (word == "a2") {
-        word = "x12";
-      } else if (word == "a3") {
-        word = "x13";
-      } else if (word == "a4") {
-        word = "x14";
-      } else if (word == "a5") {
-        word = "x15";
-      } else if (word == "a6") {
-        word = "x16";
-      } else if (word == "a7") {
-        word = "x17";
-      } else if (word == "s2") {
-        word = "x18";
-      } else if (word == "s3") {
-        word = "x19";
-      } else if (word == "s4") {
-        word = "x20";
-      } else if (word == "s5") {
-        word = "x21";
-      } else if (word == "s6") {
-        word = "x22";
-      } else if (word == "s7") {
-        word = "x23";
-      } else if (word == "s8") {
-        word = "x24";
-      } else if (word == "s9") {
-        word = "x25";
-      } else if (word == "s10") {
-        word = "x26";
-      } else if (word == "s11") {
-        word = "x27";
-      } else if (word == "t3") {
-        word = "x28";
-      } else if (word == "t4") {
-        word = "x29";
-      } else if (word == "t5") {
-        word = "x30";
-      } else if (word == "t6") {
-        word = "x31";
-      }
-    }
+    PreProcessLine(line);
   }
 }
 
