@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
   parser.AddCompositeArgument('b', "bin", "Binary file").AddValidate(&ArgumentParser::IsValidFilename).AddIsGood([](std::string& value) {
     return !ArgumentParser::IsRegularFile(value);
   }).Default(".");
-  parser.AddHelp('h', "help", "RISC-V pseudo-emulator with cache hit counter.");
+  parser.AddHelp('h', "help", "RISC-V pseudo-emulator with cache_ hit counter.");
 
   if (!parser.Parse(argc, argv, {std::cerr, true})) {
     std::cout << parser.HelpDescription() << std::endl;
@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
 
   int32_t policy = parser.GetIntValue("replacement");
   float lru_rate = executor.GetLRUHitRate() * 100;
-  float bitp_lru_rate = executor.GetBitpLRUHitRate();
+  float bitp_lru_rate = executor.GetBitpLRUHitRate() * 100;
 
   if (policy == 0) {
     printf("LRU\thit rate: %3.4f%%\npLRU\thit rate: %3.4f%%\n", lru_rate, bitp_lru_rate);
