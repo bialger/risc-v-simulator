@@ -1,4 +1,3 @@
-#include <iostream>
 #include "RISCVAssemblerToBinary.hpp"
 
 uint32_t RISCVAssemblerToBinary::ToBinary(const RISCVAssemblerCommand& command) {
