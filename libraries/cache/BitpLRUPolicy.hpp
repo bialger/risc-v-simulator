@@ -15,8 +15,8 @@ class BitpLRUPolicy {
   void AddLine(size_t index, int32_t tag);
 
  private:
-  std::vector<std::vector<bool>> has_cache_replacements_;
   std::vector<std::vector<int32_t>>& cache_;
+  std::vector<std::vector<bool>> has_cache_replacements_;
 };
 
 static_assert(CachePolicy<BitpLRUPolicy>);

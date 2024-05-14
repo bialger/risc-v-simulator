@@ -25,9 +25,15 @@ int main(int argc, char** argv) {
   parser.AddCompositeArgument('b', "bin", "Binary input_file").AddValidate(&ArgumentParser::IsValidFilename).AddIsGood([](std::string& value) {
     return !ArgumentParser::IsDirectory(value);
   }).Default(".");
-  parser.AddHelp('h', "help", "RISC-V pseudo-emulator with cache_ hit counter.");
+  parser.AddHelp('h', "help", "RISC-V pseudo-emulator with cache hit counter.");
 
-  if (!parser.Parse(argc, argv, {std::cerr, true})) {
+  std::ostringstream oss;
+
+  if (!parser.Parse(argc, argv, {oss, true})) {
+    if (!oss.str().empty()) {
+      std::cerr << oss.str() << std::endl;
+    }
+
     std::cout << parser.HelpDescription() << std::endl;
     return 1;
   }
@@ -37,13 +43,13 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  std::string filename = parser.GetCompositeValue("asm");
-  std::ifstream input_file(filename);
+  std::string input_filename = parser.GetCompositeValue("asm");
+  std::ifstream input_file(input_filename);
   std::vector<std::vector<std::string>> lines;
   std::string line;
 
   if (!input_file.is_open()) {
-    std::cerr << "Failed to open input_file: " + filename << std::endl;
+    std::cerr << "Failed to open input_file: " + input_filename << std::endl;
     return 1;
   }
 
@@ -62,8 +68,14 @@ int main(int argc, char** argv) {
   }
 
   if (parser.GetCompositeValue("bin") != default_bin) {
-    std::string filename = parser.GetCompositeValue("bin");
-    std::ofstream output_file(filename);
+    std::string output_filename = parser.GetCompositeValue("bin");
+    std::ofstream output_file(output_filename);
+
+    if (!output_file.is_open()) {
+      std::cerr << "Failed to open output_file: " + output_filename << std::endl;
+      return 1;
+    }
+
     std::vector<uint32_t> commands_code = RISCVAssemblerToBinary::Assemble(reader.GetCommands());
 
     for (uint32_t command : commands_code) {
