@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
                               "asm",
                               "Assembly input_file").AddValidate(&ArgumentParser::IsValidFilename).AddIsGood(&ArgumentParser::IsRegularFile);
   parser.AddCompositeArgument('b', "bin", "Binary input_file").AddValidate(&ArgumentParser::IsValidFilename).AddIsGood([](std::string& value) {
-    return !ArgumentParser::IsRegularFile(value) && !ArgumentParser::IsDirectory(value);
+    return !ArgumentParser::IsDirectory(value);
   }).Default(".");
   parser.AddHelp('h', "help", "RISC-V pseudo-emulator with cache_ hit counter.");
 
@@ -61,6 +61,21 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  if (parser.GetCompositeValue("bin") != default_bin) {
+    std::string filename = parser.GetCompositeValue("bin");
+    std::ofstream output_file(filename);
+    std::vector<uint32_t> commands_code = RISCVAssemblerToBinary::Assemble(reader.GetCommands());
+
+    for (uint32_t command : commands_code) {
+      char data[4];
+      data[3] = static_cast<char>((command >> 24) & 0xFF);
+      data[2] = static_cast<char>((command >> 16) & 0xFF);
+      data[1] = static_cast<char>((command >> 8) & 0xFF);
+      data[0] = static_cast<char>(command & 0xFF);
+      output_file.write(data, 4);
+    }
+  }
+
   RISCVCommandExecutor executor = RISCVCommandExecutor(reader.GetCommands());
 
   try {
@@ -80,21 +95,6 @@ int main(int argc, char** argv) {
     printf("LRU\thit rate: %3.4f%%\n", lru_rate);
   } else if (policy == 2) {
     printf("pLRU\thit rate: %3.4f%%\n", bitp_lru_rate);
-  }
-
-  if (parser.GetCompositeValue("bin") != default_bin) {
-    std::string filename = parser.GetCompositeValue("bin");
-    std::ofstream output_file(filename);
-    std::vector<uint32_t> commands_code = RISCVAssemblerToBinary::Assemble(reader.GetCommands());
-
-    for (uint32_t command : commands_code) {
-      char data[4];
-      data[3] = static_cast<char>((command >> 24) & 0xFF);
-      data[2] = static_cast<char>((command >> 16) & 0xFF);
-      data[1] = static_cast<char>((command >> 8) & 0xFF);
-      data[0] = static_cast<char>(command & 0xFF);
-      output_file.write(data, 4);
-    }
   }
 
   return 0;
