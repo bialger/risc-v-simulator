@@ -15,10 +15,10 @@ add     s4, zero, zero // s = 0;
 add     t2, zero, zero // k = 0;
 bge     t2, t6, 48 // exit k-cycle if k >= K that consists of 12 operations including this
 add     s9, s1, t2 // &pa[k] = pa + k;
-lb      s6, 0(s9) // t_8 = pa[k];
+lb      s6, 0, s9 // t_8 = pa[k];
 add     s10, s3, t1 // &pb[x / 2] = pb + x; because pb points to 16-bit integer
 add     s10, s10, t1 // &pb[x] = &pb[x / 2] + x;
-lh      s7, 0(s10) // t_16 = pb[x];
+lh      s7, 0, s10 // t_16 = pb[x];
 mul     t3, s6, s7 // t = t_8 * t_16 = pa[k] * pb[x];
 add     s4, s4, t3 // s = s + t = s + pa[k] * pb[x];
 add     s3, s3, t5 // pb = pb + N; because pb points to 16-bit integer
@@ -29,7 +29,7 @@ add     s11, s2, t1 // &pc[x / 4] = pc + x; because pc points to 32-bit integer
 add     s11, s11, t1 // &pc[x / 2] = &pc[x / 4] + x;
 add     s11, s11, t1 // &pc[3x / 4] =  &pc[x / 2] + x;
 add     s11, s11, t1 // &pc[x] = &pc[3x / 4] + x;
-sw      s4, 0(s11) // pc[x] = s;
+sw      s4, 0, s11 // pc[x] = s;
 addi    t1, t1, 0x1 // x++;
 jal     zero, -92 // repeat x-cycle that consists of 23 operations not including this
 add     s1, s1, t6 // pa = pa + K;
