@@ -4,4 +4,6 @@ add_library(cache STATIC
         LRUPolicy.hpp
         BitpLRUPolicy.cpp
         BitpLRUPolicy.hpp
+        constants.hpp
+        common_functions.hpp
 )
