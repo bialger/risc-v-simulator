@@ -31,7 +31,7 @@ void ArgumentParser::DisplayError(const std::string& message, ConditionalOutput 
     return;
   }
 
-  bool is_console_output = &error_output.out_stream == &std::cout || &error_output.out_stream == &std::cerr;
+  bool is_console_output = &error_output.out_stream == &std::cout;
 
   if (is_console_output) {
     SetRedColor();
