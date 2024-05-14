@@ -4,10 +4,13 @@
 #include <vector>
 #include <cstdint>
 
-template<typename Policy>
+#include "constants.hpp"
+#include "common_functions.hpp"
+
+template<CachePolicy Policy>
 class Cache {
  public:
-  Cache() : policy_(), requests_count_(0), hits_count_(0) {}
+  Cache() : cache_(CACHE_SETS), policy_(cache_), requests_count_(0), hits_count_(0) {}
 
   void ReadByte(size_t address) {
     Read(address, 1);
@@ -33,24 +36,41 @@ class Cache {
     Write(address, 4);
   }
 
-  float GetHitRate() const {
+  [[nodiscard]] float GetHitRate() const {
     return static_cast<float>(hits_count_) / requests_count_;
   }
 
  private:
+  std::vector<std::vector<int32_t>> cache_;
   Policy policy_;
-  std::vector<std::vector<int>> cache;
-  std::vector<std::vector<int>> is_line_changed;
-  std::vector<std::vector<int>> bit_p;
   size_t requests_count_;
   size_t hits_count_;
 
+  void HandleRequest(size_t index, int32_t tag) {
+    size_t id = Find<int32_t>(cache_[index], tag);
+
+    if (id == cache_[index].size()) {
+      policy_.AddLine(index, tag);
+    } else {
+      ++hits_count_;
+      policy_.UpdatePolicy(index, id);
+    }
+  }
+
   void Read(size_t address, size_t size) {
-    // TODO: implement
+    ++requests_count_;
+    auto tag = static_cast<int32_t>(address >> (CACHE_INDEX_LEN + CACHE_OFFSET_LEN));
+    size_t index = (address >> CACHE_OFFSET_LEN) & ((1 << CACHE_INDEX_LEN) - 1);
+
+    HandleRequest(index, tag);
   }
 
   void Write(size_t address, size_t size) {
-    // TODO: implement
+    ++requests_count_;
+    auto tag = static_cast<int32_t>(address >> (CACHE_INDEX_LEN + CACHE_OFFSET_LEN));
+    size_t index = (address >> CACHE_OFFSET_LEN) % (1 << CACHE_INDEX_LEN);
+
+    HandleRequest(index, tag);
   }
 };
 
