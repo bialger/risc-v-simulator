@@ -14,7 +14,7 @@ inline auto highLevelF(Args&&... args) -> decltype(lowLevelF(std::forward<Args>(
 
 #include "ConcreteArgumentBuilder.hpp"
 #include "ConcreteArgument.hpp"
-#include "libraries/argparser/basic/BasicFunctions.hpp"
+#include "./basic/BasicFunctions.hpp"
 
 namespace ArgumentParser {
 
