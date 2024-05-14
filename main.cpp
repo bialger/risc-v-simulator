@@ -1,5 +1,10 @@
 #include <iostream>
 #include <filesystem>
+#include <fstream>
+#include <sstream>
+#include <iterator>
+#include <string>
+#include <vector>
 
 #include "libraries/argparser/ArgParser.hpp"
 #include "libraries/asm-riscv/RISCVCommandExecutor.hpp"
@@ -8,6 +13,7 @@
 
 int main(int argc, char** argv) {
   ArgumentParser::ArgParser parser = ArgumentParser::ArgParser("RISC-V Pseudo-emulator");
+  CompositeString default_bin = "--DEFAULT--BIN--";
   parser.AddIntArgument('r',
                         "replacement",
                         "Replacement policy: 0 - all, 1 - LRU, 2 - bit-pLRU").AddIsGood([](std::string& value) {
@@ -15,9 +21,9 @@ int main(int argc, char** argv) {
   }).Default(0);
   parser.AddCompositeArgument('a',
                               "asm",
-                              "Assembly file").AddValidate(&ArgumentParser::IsValidFilename).AddIsGood(&ArgumentParser::IsRegularFile);
-  parser.AddCompositeArgument('b', "bin", "Binary file").AddValidate(&ArgumentParser::IsValidFilename).AddIsGood([](std::string& value) {
-    return !ArgumentParser::IsRegularFile(value);
+                              "Assembly input_file").AddValidate(&ArgumentParser::IsValidFilename).AddIsGood(&ArgumentParser::IsRegularFile);
+  parser.AddCompositeArgument('b', "bin", "Binary input_file").AddValidate(&ArgumentParser::IsValidFilename).AddIsGood([](std::string& value) {
+    return !ArgumentParser::IsRegularFile(value) && !ArgumentParser::IsDirectory(value);
   }).Default(".");
   parser.AddHelp('h', "help", "RISC-V pseudo-emulator with cache_ hit counter.");
 
@@ -31,7 +37,22 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  RISCVAssemblerReader reader = RISCVAssemblerReader(parser.GetCompositeValue("asm"));
+  std::string filename = parser.GetCompositeValue("asm");
+  std::ifstream input_file(filename);
+  std::vector<std::vector<std::string>> lines;
+  std::string line;
+
+  if (!input_file.is_open()) {
+    std::cerr << "Failed to open input_file: " + filename << std::endl;
+    return 1;
+  }
+
+  while (std::getline(input_file, line)) {
+    std::istringstream iss(line);
+    lines.emplace_back(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>());
+  }
+
+  RISCVAssemblerReader reader = RISCVAssemblerReader(lines);
 
   try {
     reader.Process();

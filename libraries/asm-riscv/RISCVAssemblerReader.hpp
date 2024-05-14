@@ -8,14 +8,14 @@
 
 class RISCVAssemblerReader {
  public:
-  explicit RISCVAssemblerReader(const std::string& filename);
+  explicit RISCVAssemblerReader(std::vector<std::vector<std::string>>& lines);
 
   void Process();
 
   std::vector<RISCVAssemblerCommand> GetCommands();
 
  private:
-  std::vector<std::vector<std::string>> lines_;
+  std::vector<std::vector<std::string>>& lines_;
   std::vector<RISCVAssemblerCommand> commands_;
 
   void PreProcess();

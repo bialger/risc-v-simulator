@@ -5,19 +5,7 @@
 
 #include "RISCVAssemblerReader.hpp"
 
-RISCVAssemblerReader::RISCVAssemblerReader(const std::string& filename) {
-  std::ifstream file(filename);
-  std::string line;
-
-  if (!file.is_open()) {
-    throw std::runtime_error("Failed to open file: " + filename);
-  }
-
-  while (std::getline(file, line)) {
-    std::istringstream iss(line);
-    lines_.emplace_back(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>());
-  }
-}
+RISCVAssemblerReader::RISCVAssemblerReader(std::vector<std::vector<std::string>>& lines) : lines_(lines), commands_() {}
 
 void RISCVAssemblerReader::PreProcess() {
   for (auto& line : lines_) {
