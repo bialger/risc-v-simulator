@@ -82,5 +82,20 @@ int main(int argc, char** argv) {
     printf("pLRU\thit rate: %3.4f%%\n", bitp_lru_rate);
   }
 
+  if (parser.GetCompositeValue("bin") != default_bin) {
+    std::string filename = parser.GetCompositeValue("bin");
+    std::ofstream output_file(filename);
+    std::vector<uint32_t> commands_code = RISCVAssemblerToBinary::Assemble(reader.GetCommands());
+
+    for (uint32_t command : commands_code) {
+      char data[4];
+      data[3] = static_cast<char>((command >> 24) & 0xFF);
+      data[2] = static_cast<char>((command >> 16) & 0xFF);
+      data[1] = static_cast<char>((command >> 8) & 0xFF);
+      data[0] = static_cast<char>(command & 0xFF);
+      output_file.write(data, 4);
+    }
+  }
+
   return 0;
 }
