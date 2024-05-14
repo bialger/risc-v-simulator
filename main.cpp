@@ -24,10 +24,16 @@ int main(int argc, char** argv) {
                               "Assembly input_file").AddValidate(&ArgumentParser::IsValidFilename).AddIsGood(&ArgumentParser::IsRegularFile);
   parser.AddCompositeArgument('b', "bin", "Binary input_file").AddValidate(&ArgumentParser::IsValidFilename).AddIsGood([](std::string& value) {
     return !ArgumentParser::IsDirectory(value);
-  }).Default(".");
+  }).Default(default_bin);
   parser.AddHelp('h', "help", "RISC-V pseudo-emulator with cache hit counter.");
 
-  if (!parser.Parse(argc, argv, {std::cerr, true})) {
+  std::ostringstream oss;
+
+  if (!parser.Parse(argc, argv, {oss, true})) {
+    if (!oss.str().empty()) {
+      std::cerr << oss.str() << std::endl;
+    }
+
     std::cout << parser.HelpDescription() << std::endl;
     return 1;
   }
