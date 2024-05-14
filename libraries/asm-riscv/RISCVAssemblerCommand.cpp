@@ -116,7 +116,7 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
                                 >> (registers.GetRegister(value) & 0x1f)));
       return 0;
     };
-  } else if (command_name == "srl") {
+  } else if (command_name == "sra") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
       registers.SetRegister(reg1, registers.GetRegister(reg2) >> (registers.GetRegister(value) & 0x1f));
       return 0;
