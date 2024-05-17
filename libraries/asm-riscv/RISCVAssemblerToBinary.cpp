@@ -32,7 +32,7 @@ uint32_t RISCVAssemblerToBinary::ToBinary(const RISCVAssemblerCommand& command) 
   } else if (command_name == "srli") {
     result = (shamt << 20) | (reg2 << 15) | (0b101 << 12) | (reg1 << 7) | 0b0010011;
   } else if (command_name == "srai") {
-    result = (0b01000 << 27) | ((imm_j & 0x1f) << 20) | (reg1 << 15) | (0b101 << 12) | (reg1 << 7) | 0b0010011;
+    result = (0b01000 << 27) | ((imm_j & 0x1f) << 20) | (reg2 << 15) | (0b101 << 12) | (reg1 << 7) | 0b0010011;
   } else if (command_name == "add") {
     result = (reg3 << 20) | (reg2 << 15) | (reg1 << 7) | 0b0110011;
   } else if (command_name == "sub") {
