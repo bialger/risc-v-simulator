@@ -180,13 +180,13 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
   } else if (command_name == "jal") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
       registers.SetRegister(reg1, static_cast<int32_t>(registers.GetPC() + 4));
-      registers.SetPC(registers.GetPC() + SignExtended12Bits(value));
+      registers.SetPC(registers.GetPC() + SignExtended13Bits(value));
       return 0;
     };
   } else if (command_name == "jalr") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
       auto t = static_cast<int32_t>(registers.GetPC() + 4);
-      int32_t address = registers.GetRegister(reg2) + SignExtended12Bits(value);
+      int32_t address = registers.GetRegister(reg2) + SignExtended13Bits(value);
 
       if (address == 0) {
         return -1;
@@ -203,7 +203,7 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
   } else if (command_name == "beq") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
       if (registers.GetRegister(reg1) == registers.GetRegister(reg2)) {
-        registers.SetPC(registers.GetPC() + SignExtended12Bits(value));
+        registers.SetPC(registers.GetPC() + SignExtended13Bits(value));
       }
 
       return 0;
@@ -211,7 +211,7 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
   } else if (command_name == "bne") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
       if (registers.GetRegister(reg1) != registers.GetRegister(reg2)) {
-        registers.SetPC(registers.GetPC() + SignExtended12Bits(value));
+        registers.SetPC(registers.GetPC() + SignExtended13Bits(value));
       }
 
       return 0;
@@ -219,7 +219,7 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
   } else if (command_name == "blt") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
       if (registers.GetRegister(reg1) < registers.GetRegister(reg2)) {
-        registers.SetPC(registers.GetPC() + SignExtended12Bits(value));
+        registers.SetPC(registers.GetPC() + SignExtended13Bits(value));
       }
 
       return 0;
@@ -227,7 +227,7 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
   } else if (command_name == "bge") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
       if (registers.GetRegister(reg1) >= registers.GetRegister(reg2)) {
-        registers.SetPC(registers.GetPC() + SignExtended12Bits(value));
+        registers.SetPC(registers.GetPC() + SignExtended13Bits(value));
       }
 
       return 0;
@@ -235,7 +235,7 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
   } else if (command_name == "bltu") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
       if (static_cast<uint32_t>(registers.GetRegister(reg1)) < static_cast<uint32_t>(registers.GetRegister(reg2))) {
-        registers.SetPC(registers.GetPC() + SignExtended12Bits(value));
+        registers.SetPC(registers.GetPC() + SignExtended13Bits(value));
       }
 
       return 0;
@@ -243,7 +243,7 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
   } else if (command_name == "bgeu") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
       if (static_cast<uint32_t>(registers.GetRegister(reg1)) >= static_cast<uint32_t>(registers.GetRegister(reg2))) {
-        registers.SetPC(registers.GetPC() + SignExtended12Bits(value));
+        registers.SetPC(registers.GetPC() + SignExtended13Bits(value));
       }
 
       return 0;
@@ -340,12 +340,11 @@ int32_t RISCVAssemblerCommand::GetValue() const {
 }
 
 int32_t RISCVAssemblerCommand::SignExtended12Bits(int32_t value) {
-  if ((std::abs(value) & 0xfff) == 0x800 && value < 0) {
-    return -0x800;
-  }
+  return (value << 20) >> 20;
+}
 
-  uint32_t pre_result = std::abs(value) & 0x7ff;
-  return static_cast<int32_t>(pre_result) * (value < 0 ? -1 : 1);
+int32_t RISCVAssemblerCommand::SignExtended13Bits(int32_t value) {
+  return ((value << 19) >> 20) << 1;
 }
 
 int32_t RISCVAssemblerCommand::SignExtended20Bits(int32_t value) {

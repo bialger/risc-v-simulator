@@ -25,6 +25,7 @@ class RISCVAssemblerCommand {
   int32_t value_;
 
   static int32_t SignExtended12Bits(int32_t value);
+  static int32_t SignExtended13Bits(int32_t value);
   static int32_t SignExtended20Bits(int32_t value);
   static int32_t SignExtended32Bits(uint8_t value);
   static int32_t SignExtended32Bits(uint16_t value);
