@@ -13,7 +13,7 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
       registers.SetRegister(reg1, value << 12);
       return 0;
     };
-  } else if (command_name == "aiupc") {
+  } else if (command_name == "auipc") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
       registers.SetRegister(reg1, static_cast<int32_t>(registers.GetPC()) + SignExtended20Bits(value));
       return 0;
@@ -60,7 +60,7 @@ RISCVAssemblerCommand::RISCVAssemblerCommand(const std::string& command_name,
                             static_cast<int32_t>(static_cast<uint32_t>(registers.GetRegister(reg2)) >> (value & 0x1f)));
       return 0;
     };
-  } else if (command_name == "srli") {
+  } else if (command_name == "srai") {
     command_ = [](RISCVRegisters& registers, ProcessMemory& memory, uint8_t reg1, uint8_t reg2, int32_t value) {
       registers.SetRegister(reg1, registers.GetRegister(reg2) >> (value & 0x1f));
       return 0;
