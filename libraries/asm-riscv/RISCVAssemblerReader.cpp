@@ -152,8 +152,6 @@ RISCVAssemblerCommand RISCVAssemblerReader::ProcessLine(const std::vector<std::s
 
       if (line[3][0] == 'x') {
         reg2 = std::stoi(line[3].substr(1));
-      } else {
-        value = GetInteger(line[3]);
       }
     }
   }
