@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
 
   if (parser.GetCompositeValue("bin") != default_bin) {
     std::string output_filename = parser.GetCompositeValue("bin");
-    std::ofstream output_file(output_filename);
+    std::ofstream output_file(output_filename, std::ios::binary);
 
     if (!output_file.is_open()) {
       std::cerr << "Failed to open output_file: " + output_filename << std::endl;
